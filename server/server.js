@@ -2,8 +2,23 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
+const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
+
+// ── AUTO JWT SECRET ────────────────────────────────────────
+// If JWT_SECRET isn't in .env, generate one and persist it so
+// sessions survive server restarts without any manual setup.
+if (!process.env.JWT_SECRET) {
+  const secretFile = path.join(__dirname, '.jwt_secret');
+  if (fs.existsSync(secretFile)) {
+    process.env.JWT_SECRET = fs.readFileSync(secretFile, 'utf8').trim();
+  } else {
+    process.env.JWT_SECRET = crypto.randomBytes(32).toString('hex');
+    fs.writeFileSync(secretFile, process.env.JWT_SECRET);
+    console.log('🔑 Generated JWT secret saved to .jwt_secret');
+  }
+}
 
 const app = express();
 
